@@ -21,6 +21,19 @@ else {
     }
 }
 
+# Added functionality to backup the save file initially - 23/05/2025
+# Define game-specific backup folder
+$gameBackupFolder = "$backupMain\$gameName"
+
+# Check if backup folder exists
+if (!(Test-Path $gameBackupFolder)) {
+    New-Item -Path $gameBackupFolder -ItemType Directory -Force
+    Write-Host "Created backup folder for game: $gameBackupFolder"
+}
+# Copy all existing save files to backup folder
+Copy-Item -Path "$saveFolder\*" -Destination $gameBackupFolder
+Write-Host "Initial backup complete: All existing saves copied to $gameBackupFolder"
+
 # Create watcher instance for saveFolder
 $watcher = New-Object System.IO.FileSystemWatcher
 $watcher.Path = $saveFolder
