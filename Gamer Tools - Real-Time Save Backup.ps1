@@ -1,4 +1,3 @@
-
 # Ask the user for name of game and save folder location and check it's valid
 $gameName = Read-Host "Please enter the name of your game"
 do { $saveFolder = Read-Host "Please enter your game's save folder path"
@@ -8,13 +7,27 @@ do { $saveFolder = Read-Host "Please enter your game's save folder path"
 } until (Test-Path $saveFolder)
 
 # Ask user for desired backup location
-$backupMain = Read-Host "Please enter your preferred backup location"
+# Added error handling for backup - 23/05/2025
+$backupMain = Read-Host "Please enter your preferred backup location" 
+# Check if the path syntax is valid
+if (!(Test-Path $backupMain -IsValid)) {
+    Write-Host "Invalid folder syntax! Please enter a valid folder path"
+}
+# Check if folder exists and creates if not
+else { 
+    if (!(Test-Path $backupMain)) { 
+        New-Item -Path $backupMain -ItemType Directory -Force
+        Write-Host "Backup folder didn't exist.. so it was created"
+    }
+}
 
+# Create watcher instance for saveFolder
 $watcher = New-Object System.IO.FileSystemWatcher
 $watcher.Path = $saveFolder
 $watcher.EnableRaisingEvents = $true
 $watcher.NotifyFilter = [System.IO.NotifyFilters]::FileName -bor [System.IO.NotifyFilters]::LastWrite
 
+# Register wathcer as an event
 Register-ObjectEvent $watcher "Changed" -Action {
     $backupSub = "$backupMain\$gameName-Backup-$([DateTime]::Now.ToString('dd-MM-yyyy_HH-mm-ss'))"
     New-Item -ItemType Directory -Path $backupSub -Force
