@@ -1,3 +1,5 @@
+#Start log for session
+Start-Transcript -Path "D:\Save Game Data\SessionLog-$([DateTime]::Now.ToString('dd-MM-yyyy_HH-mm-ss')).txt" -Force
 # Ask the user for name of game and save folder location and check it's valid
 $gameName = Read-Host "Please enter the name of your game"
 do { $saveFolder = Read-Host "Please enter your game's save folder path"
@@ -48,23 +50,21 @@ $watcher.NotifyFilter = [System.IO.NotifyFilters]::FileName -bor [System.IO.Noti
 
 # Register watcher as an event
 Register-ObjectEvent $watcher "Changed" -Action {
-    $backupSub = "$gameBackupFolder\Backup-$([DateTime]::Now.ToString('dd-MM-yyyy_HH-mm-ss'))"
-    New-Item -ItemType Directory -Path $backupSub -Force
+$backupSub = $gameBackupFolder
+    Start-Sleep -Seconds 2
     try {
-        Copy-Item -Path $event.SourceEventArgs.FullPath -Destination $backupSub -Recurse
+        Copy-Item -Path $event.SourceEventArgs.FullPath -Destination $backupSub -Recurse -Force
     } catch {
         Write-Host "Error backing up file: $_"
     }
 
-    if ($event.SourceEventArgs.ChangeType -eq [System.IO.WatcherChangeTypes]::Created) {
-        Write-Host "New save file detected & backed up: $event.SourceEventArgs.Name"
-    }
-    else {
-        Write-Host "Backup created for modified save: $event.SourceEventArgs.Name"
-    }
+    Write-Host "Save data updated in backup folder: $gameBackupFolder"
 }
 
 # Added confirmation to end of script to keep Powershell alive - 23/05/2025
 Write-Host "Monitoring save files for changes... Press Ctrl+C to finish monitoring"
 try { while ($true) { Start-Sleep -Seconds 5 } }
 finally {Write-Host "Save monitoring stopped. Your backups are safe."}
+
+#Stop transcript
+Stop-Transcript
