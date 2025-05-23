@@ -3,9 +3,9 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 # Start log for session in "Logs" subfolder next to script
 $logFolder = "$scriptDir\Logs"
-if (!(Test-Path $logFolder)) {New-Item -ItemType Directory -Path $logFolder -Force }
+if (!(Test-Path $logFolder)) { $null = New-Item -ItemType Directory -Path $logFolder -Force }
 
-Start-Transcript -Path "$logFolder\SessionLog-$([DateTime]::Now.ToString('dd-MM-yyyy_HH-mm-ss')).txt" -Force
+Start-Transcript -Path "$logFolder\SessionLog-$([DateTime]::Now.ToString('dd-MM-yyyy_HH-mm-ss')).txt" -Force | Out-Null
 
 # Ask the user for name of game and save folder location and check it's valid
 $gameName = Read-Host "Please enter the name of your game"
