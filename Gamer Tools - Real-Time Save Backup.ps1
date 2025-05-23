@@ -40,3 +40,8 @@ Register-ObjectEvent $watcher "Changed" -Action {
         Write-Host "Backup created for modified save: $event.SourceEventArgs.Name"
     }
 }
+
+# Added confirmation to end of script to keep Powershell alive - 23/05/2025
+Write-Host "Monitoring save files for changes... Press Ctrl+C to finish monitoring"
+try { while ($true) { Start-Sleep -Seconds 5 } }
+finally {Write-Host "Save monitoring stopped. Your backups are safe."}
