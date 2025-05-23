@@ -40,12 +40,16 @@ $watcher.Path = $saveFolder
 $watcher.EnableRaisingEvents = $true
 $watcher.NotifyFilter = [System.IO.NotifyFilters]::FileName -bor [System.IO.NotifyFilters]::LastWrite
 
-# Register wathcer as an event
+# Register watcher as an event
 Register-ObjectEvent $watcher "Changed" -Action {
-    $backupSub = "$backupMain\$gameName-Backup-$([DateTime]::Now.ToString('dd-MM-yyyy_HH-mm-ss'))"
+    $backupSub = "$gameBackupFolder\Backup-$([DateTime]::Now.ToString('dd-MM-yyyy_HH-mm-ss'))"
     New-Item -ItemType Directory -Path $backupSub -Force
-    Copy-Item -Path $event.SourceEventArgs.FullPath -Destination $backupSub
-    
+    try {
+        Copy-Item -Path $event.SourceEventArgs.FullPath -Destination $backupSub -Recurse
+    } catch {
+        Write-Host "Error backing up file: $_"
+    }
+
     if ($event.SourceEventArgs.ChangeType -eq [System.IO.WatcherChangeTypes]::Created) {
         Write-Host "New save file detected & backed up: $event.SourceEventArgs.Name"
     }
