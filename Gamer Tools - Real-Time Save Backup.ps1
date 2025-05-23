@@ -9,6 +9,8 @@ do { $saveFolder = Read-Host "Please enter your game's save folder path"
 # Ask user for desired backup location
 # Added error handling for backup - 23/05/2025
 $backupMain = Read-Host "Please enter your preferred backup location" 
+# Added handling for leading and trailing quote marks - 23/05/2025
+$backupMain = $backupMain -replace '^"|"$', ''
 # Check if the path syntax is valid
 if (!(Test-Path $backupMain -IsValid)) {
     Write-Host "Invalid folder syntax! Please enter a valid folder path"
