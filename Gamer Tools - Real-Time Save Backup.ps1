@@ -1,5 +1,12 @@
-#Start log for session
-Start-Transcript -Path "D:\Save Game Data\SessionLog-$([DateTime]::Now.ToString('dd-MM-yyyy_HH-mm-ss')).txt" -Force
+# Added session log with dynamic script locator for portability - 23/05/2025
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+# Start log for session in "Logs" subfolder next to script
+$logFolder = "$scriptDir\Logs"
+if (!(Test-Path $logFolder)) {New-Item -ItemType Directory -Path $logFolder -Force }
+
+Start-Transcript -Path "$logFolder\SessionLog-$([DateTime]::Now.ToString('dd-MM-yyyy_HH-mm-ss')).txt" -Force
+
 # Ask the user for name of game and save folder location and check it's valid
 $gameName = Read-Host "Please enter the name of your game"
 do { $saveFolder = Read-Host "Please enter your game's save folder path"
@@ -15,7 +22,7 @@ $backupMain = Read-Host "Please enter your preferred backup location"
 # Added handling for leading and trailing quote marks - 23/05/2025
 $backupMain = $backupMain -replace '^"|"$', ''
 
-# Warn if the folder doesn’t exist and create it if needed
+# Warn if the folder doesn't exist and create it if needed
 if (!(Test-Path $backupMain)) {
     Write-Host "Warning: The folder does not exist. It will be created."
     try {
