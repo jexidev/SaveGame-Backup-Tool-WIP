@@ -8,19 +8,23 @@ do { $saveFolder = Read-Host "Please enter your game's save folder path"
 
 # Ask user for desired backup location
 # Added error handling for backup - 23/05/2025
-$backupMain = Read-Host "Please enter your preferred backup location" 
+$backupMain = Read-Host "Please enter your preferred backup location"
+
 # Added handling for leading and trailing quote marks - 23/05/2025
 $backupMain = $backupMain -replace '^"|"$', ''
-# Check if the path syntax is valid
-if (!(Test-Path $backupMain -IsValid)) {
-    Write-Host "Invalid folder syntax! Please enter a valid folder path"
-}
-# Check if folder exists and creates if not
-else { 
-    if (!(Test-Path $backupMain)) { 
+
+# Warn if the folder doesn’t exist and create it if needed
+if (!(Test-Path $backupMain)) {
+    Write-Host "Warning: The folder does not exist. It will be created."
+    try {
         New-Item -Path $backupMain -ItemType Directory -Force
-        Write-Host "Backup folder didn't exist.. so it was created"
+        Write-Host "Backup folder created: $backupMain"
+    } catch {
+        Write-Host "Error: Could not create backup folder at $backupMain"
+        exit
     }
+} else {
+    Write-Host "Backup folder exists: $backupMain"
 }
 
 # Added functionality to backup the save file initially - 23/05/2025
