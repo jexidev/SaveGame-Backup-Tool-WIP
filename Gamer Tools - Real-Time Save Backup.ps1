@@ -20,7 +20,7 @@ do { $saveFolder = Read-Host "Please enter your game's save folder path"
 $backupMain = Read-Host "Please enter your preferred backup location"
 
 # Added handling for leading and trailing quote marks - 23/05/2025
-$backupMain = $backupMain -replace '^"|"$', ''
+$backupMain = $backupMain.Trim() -replace '^"|"$', ''
 
 # Warn if the folder doesn't exist and create it if needed
 if (!(Test-Path $backupMain)) {
@@ -57,16 +57,28 @@ $watcher.NotifyFilter = [System.IO.NotifyFilters]::FileName -bor [System.IO.Noti
 
 # Register watcher as an event
 Register-ObjectEvent $watcher "Changed" -Action {
-$backupSub = $gameBackupFolder
-    Start-Sleep -Seconds 2
-    try {
-        Copy-Item -Path $event.SourceEventArgs.FullPath -Destination $backupSub -Recurse -Force
-    } catch {
-        Write-Host "Error backing up file: $_"
+    $backupSub = $gameBackupFolder
+    $maxAttempts = 5  # Number of retries
+    $attempt = 0
+    $success = $false
+
+    while ($attempt -lt $maxAttempts -and -not $success) {
+        try {
+            Copy-Item -Path $event.SourceEventArgs.FullPath -Destination $backupSub -Recurse -Force
+            Write-Host "Save data updated in backup folder: $gameBackupFolder"
+            $success = $true  # Backup successful, exit loop
+        } catch {
+            Write-Host "Backup attempt failed, retrying... ($attempt of $maxAttempts)"
+            Start-Sleep -Seconds 2  # Short delay before retrying
+            $attempt++
+        }
     }
 
-    Write-Host "Save data updated in backup folder: $gameBackupFolder"
+    if (-not $success) {
+        Write-Host "Error: Could not back up $($event.SourceEventArgs.Name) after multiple attempts."
+    }
 }
+
 
 # Added confirmation to end of script to keep Powershell alive - 23/05/2025
 Write-Host "Monitoring save files for changes... Press Ctrl+C to finish monitoring"
