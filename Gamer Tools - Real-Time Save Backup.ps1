@@ -63,13 +63,21 @@ Register-ObjectEvent $watcher "Changed" -Action {
     $success = $false
 
     while ($attempt -lt $maxAttempts -and -not $success) {
-        try {
-            Copy-Item -Path $event.SourceEventArgs.FullPath -Destination $backupSub -Recurse -Force
-            Write-Host "Save data updated in backup folder: $gameBackupFolder"
-            $success = $true  # Backup successful, exit loop
-        } catch {
-            Write-Host "Backup attempt failed, retrying... ($attempt of $maxAttempts)"
-            Start-Sleep -Seconds 2  # Short delay before retrying
+        if (Test-Path $event.SourceEventArgs.FullPath) {  # Ensure file exists before attempting copy
+            Write-Host "Attempting to copy: $($event.SourceEventArgs.FullPath)"  # Debug message
+            
+            try {
+                Copy-Item -Path $event.SourceEventArgs.FullPath -Destination $backupSub -Recurse -Force
+                Write-Host "Successfully backed up: $($event.SourceEventArgs.Name)"
+                $success = $true
+            } catch {
+                Write-Host "Backup attempt failed, retrying... ($attempt of $maxAttempts)"
+                Start-Sleep -Seconds 2
+                $attempt++
+            }
+        } else {
+            Write-Host "File not accessible yet—waiting for unlock..."
+            Start-Sleep -Seconds 2
             $attempt++
         }
     }
@@ -78,7 +86,6 @@ Register-ObjectEvent $watcher "Changed" -Action {
         Write-Host "Error: Could not back up $($event.SourceEventArgs.Name) after multiple attempts."
     }
 }
-
 
 # Added confirmation to end of script to keep Powershell alive - 23/05/2025
 Write-Host "Monitoring save files for changes... Press Ctrl+C to finish monitoring"
